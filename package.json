@@ -1,0 +1,16 @@
+{
+  "name": "jarvis-xbox-ai",
+  "version": "1.0.0",
+  "description": "Jarvis is a personal assistant for all of your xbox one needs!",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Malik Inkatha",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^2.4.1",
+    "express": "^4.13.4",
+    "request": "^2.72.0"
+  }
+}
