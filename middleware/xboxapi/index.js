@@ -140,7 +140,7 @@ xboxApi.sendMessage = function(message, userID) {
     },
     method: "POST",
     json: {
-        "to": [userID], // My brother's xID 2533274816025747 my xID - 2535413110641408
+        "to": [userID],
         "message": message
     }
   });
