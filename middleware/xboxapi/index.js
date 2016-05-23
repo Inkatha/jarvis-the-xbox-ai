@@ -167,10 +167,9 @@ xboxApi.monitorAwayStatus = function(userID) {
     var activityName = activityInformation["activityName"];
     var appUserGamerTag = activityInformation["gamerTag"];
 
-    var appStartTime = new Date(activityInformation["startTime"]);
-    var appEndTime = new Date(activityInformation["endTime"]);
-
-    if (activityName == "Hulu" || activityName == "Netflix") {
+    // If I'm currently watching Hulu or Netflix and I haven't ended the application yet.
+    console.log(activityInformation["endTime"]);
+    if ((activityName == "Hulu" || activityName == "Netflix") && activityInformation["endTime"] === undefined) {
       xboxApi.getMessages(function(messageData) {
         var newMessage = new Message({});
         var NEWEST = 0;
@@ -201,7 +200,7 @@ xboxApi.monitorAwayStatus = function(userID) {
                       "Jarvis: Hello " + newMessage["sender"] + ". " +
                       appUserGamerTag + " is currently watching " +
                       activityName + " and is unable to respond. " +
-                      appUserGamerTag + " will be get to you at their earliest convenience.", newMessage["senderXuid"]);
+                      appUserGamerTag + " will get to you at their earliest convenience.", newMessage["senderXuid"]);
                     }
                   });
                 } else {
@@ -210,7 +209,7 @@ xboxApi.monitorAwayStatus = function(userID) {
               }
       });
     } else {
-      console.log("Signed offline or available for messaging.");
+      console.log("Signed offline, or available for messaging.");
     }
   });
 }

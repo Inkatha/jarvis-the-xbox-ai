@@ -16,7 +16,7 @@ app.set("view engine", "ejs");
 //Run the Monitor function every 60 seconds.
 setInterval(function() {
   xboxApi.monitorAwayStatus(myID);
-}, 60000);
+}, 15000);
 
 // xboxApi.getMessages(function(response) {
 //   console.log(response);
