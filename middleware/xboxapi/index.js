@@ -1,4 +1,5 @@
 var request = require("request"), auth = process.env.XBOX_API_AUTH_KEY;
+var Message = require("../../models/message");
 var myID = process.env.MY_XBOX_ID;
 var xboxApi = {};
 
@@ -13,7 +14,6 @@ xboxApi.getConversations = function(queryData) {
   },
   function(error, response, body) {
     var parsedData = JSON.parse(body);
-
     if (!error) {
       return queryData(parsedData);
     } else {
@@ -24,21 +24,62 @@ xboxApi.getConversations = function(queryData) {
 
 xboxApi.getMessages = function(queryData) {
   var url = "https://xboxapi.com/v2/messages";
+  var increment = 0;
+
   request({
     url: url,
     headers: {
       "X-AUTH": auth
     }
   },
+
   function(error, response, body) {
     var parsedData = JSON.parse(body);
 
-    if (!error) {
-      return queryData(parsedData);
-    } else {
-      return "Sorry, messages could not be retrieved.";
-    }
+      // Checks if the XboxAPI returned data
+      if (parsedData !== undefined) {
+
+        // Loop through all returned messages
+        while (parsedData[increment] !== undefined) {
+          // Check if the a message already exists
+          Message.find({messageId: parsedData[increment]["header"]["id"]}, function(err, foundMessage) {
+            //if (foundMessage === undefined) {
+
+            console.log(parsedData[increment]["header"]["id"]);
+            
+              var newMessage = new Message({
+                messageId: parsedData[increment]["header"]["id"],
+                senderXuid: parsedData[increment]["header"]["senderXuid"],
+                sender: parsedData[increment]["header"]["sender"],
+                sent: parsedData[increment]["header"]["sent"],
+                expiration: parsedData[increment]["header"]["expiration"],
+                hasText: parsedData[increment]["header"]["hasText"],
+                hasPhoto: BooleparsedData[increment]["header"]["hasPhoto"],
+                hasAudio: parsedData[increment]["header"]["hasAudio"],
+                messageFolderType: parsedData[increment]["header"]["Inbox"],
+                messageSummary: parsedData[increment]["messageSummary"]
+              });
+
+              // Create the new message
+              Message.save(newMessage, function(err, newlyCreated) {
+                if (err) {
+                  console.log(err);
+                } else {
+                  console.log("Message successfully saved");
+                }
+              });
+            //}
+          });
+          increment++;
+        }
+      }
+      if (!error) {
+        return queryData(parsedData);
+      } else {
+        return "Sorry, conversation data could not be retrieved.";
+      }
   });
+  increment = 0;
 }
 
 xboxApi.getMostRecentActivity = function(userID, queryData) {
@@ -129,8 +170,6 @@ xboxApi.getUserData = function(userID) {
         "tenureLevel": tenureLevel,
         "message": message
       }
-
-      console.log(userData.gamerTag);
       return userData;
     } else {
       console.log("There was an error");
@@ -164,13 +203,14 @@ xboxApi.monitorAwayStatus = function(userID) {
   xboxApi.getMostRecentActivity(userID, function(activityInformation) {
     var activityName = activityInformation["activityName"];
     var appUserGamerTag = activityInformation["gamerTag"];
+
     var appStartTime = new Date(activityInformation["startTime"]);
     var appEndTime = new Date(activityInformation["endTime"]);
 
     if (activityName == "Hulu" || activityName == "Netflix") {
-      xboxApi.getConversations(function(conversationData) {
+      xboxApi.getMessages(function(messageData) {
         // TODO change to fit all new messages, will be the first conversation you've had.
-        var testConversation = conversationData[0];
+        var testConversation = messageData[0];
 
         var msgSenderGamerTag = testConversation["senderGamerTag"];
         var msgSenderID = testConversation["senderXuid"];
