@@ -5,8 +5,8 @@ var app = express();
 
 app.set("view engine", "ejs");
 
-
-xboxApi.monitorAwayStatus("2535413110641408");
+//xboxApi.monitorAwayStatus("2535413110641408");
+xboxApi.sendMessage("This was sent from some code.", "2533274850459263");
 
 app.get("/", function(req, res) {
 

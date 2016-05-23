@@ -70,6 +70,7 @@ xboxApi.getMostRecentActivity = function(userID) {
     }
 
     // An endtime isn't set until the user closes the application they're using.
+    // First condition means the user is currently using the app.
     if (startTime !== undefined && endTime === undefined) {
       message += "You are currently using " + recentActivityName + ".";
     } else {
