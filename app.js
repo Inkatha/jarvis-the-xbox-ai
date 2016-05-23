@@ -5,6 +5,8 @@ var app = express();
 
 app.set("view engine", "ejs");
 
+xboxApi.monitorAwayStatus("2535413110641408");
+
 app.get("/", function(req, res) {
 
 });

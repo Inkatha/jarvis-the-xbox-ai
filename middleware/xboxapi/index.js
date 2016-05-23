@@ -1,4 +1,4 @@
-var request = require("request"), auth = process.env.XBOX_API_AUTH_CODE;
+var request = require("request"), auth = process.env.XBOX_API_AUTH_KEY;
 var xboxApi = {};
 
 xboxApi.getConversations = function() {
@@ -46,16 +46,19 @@ xboxApi.getMostRecentActivity = function(userID) {
   }, function(error, response, body) {
     var parsedData = JSON.parse(body);
     var increment = 0;
-
-    var userID = parsedData["activityItems"][increment]["userXuid"];
-    var recentActivityName = parsedData["activityItems"][increment]["contentTitle"];
-    var recentActivityDescription = parsedData["activityItems"][increment]["description"];
-    var startTime = parsedData["activityItems"][increment]["startTime"];
-    var endTime = parsedData["activityItems"][increment]["endTime"];
-    var sessionTime = parsedData["activityItems"][increment]["sessionDurationInMinutes"];
-    var gamerTag = parsedData["activityItems"][increment]["gamertag"];
-
     var message = "Jarvis: ";
+
+    try {
+      var userID = parsedData["activityItems"][increment]["userXuid"];
+      var recentActivityName = parsedData["activityItems"][increment]["contentTitle"];
+      var recentActivityDescription = parsedData["activityItems"][increment]["description"];
+      var startTime = parsedData["activityItems"][increment]["startTime"];
+      var endTime = parsedData["activityItems"][increment]["endTime"];
+      var sessionTime = parsedData["activityItems"][increment]["sessionDurationInMinutes"];
+      var gamerTag = parsedData["activityItems"][increment]["gamertag"];
+    } catch(err) {
+      console.log(err);
+    }
 
     // This check is done to skip over activities without a start time and end time, example: achievements.
     while (startTime === undefined) {
@@ -88,9 +91,10 @@ xboxApi.getMostRecentActivity = function(userID) {
       "message": message
     };
 
-    var activityInformationParsed = JSON.parse(activityInformation);
+    console.log(activityInformation);
+
     increment = 0;
-    return activityInformationParsed;
+    return activityInformation;
   });
 }
 
@@ -123,6 +127,7 @@ xboxApi.getUserData = function(userID) {
         "message": message
       }
 
+      console.log(userData.gamerTag);
       return userData;
     } else {
       console.log("There was an error");
@@ -143,12 +148,17 @@ xboxApi.sendMessage = function(message, userID) {
         "to": [userID],
         "message": message
     }
+  }, function(error) {
+    if (!error) {
+      console.log("A Message has been sent.");
+    } else {
+      console.log("Invalid authorization... unable to send a message.");
+    }
   });
 }
 
 xboxApi.monitorAwayStatus = function(userID) {
-  var conversations = xboxApi.getMostRecentActivity(userID);
-  console.log(conversations);
+  xboxApi.getMostRecentActivity(userID);
 }
 
 module.exports = xboxApi;
