@@ -1,10 +1,9 @@
 var request = require("request"), auth = process.env.XBOX_API_AUTH_KEY;
+var myID = process.env.MY_XBOX_ID;
 var xboxApi = {};
 
-xboxApi.getConversations = function() {
+xboxApi.getConversations = function(queryData) {
   var url = "https://xboxapi.com/v2/conversations";
-  var conversationData = {};
-  var increment = 0;
 
   request({
     url: url,
@@ -15,29 +14,36 @@ xboxApi.getConversations = function() {
   function(error, response, body) {
     var parsedData = JSON.parse(body);
 
-    var senderId = parsedData[increment]["senderXuid"];
-    var senderGamerTag = parsedData[increment]["senderGamerTag"];
-    var messageText = parsedData[increment]["messageText"];
-    var messageCount = parsedData[increment]["messageCount"];
-
     if (!error) {
-      while (parsedData[increment] !== undefined) {
-        conversationData[increment] = {
-          "senderId": parsedData[increment]["senderXuid"],
-          "senderGamerTag": parsedData[increment]["senderGamerTag"],
-          "messageText": parsedData[increment]["messageText"],
-          "messageCount": parsedData[increment]["messageCount"]
-        };
-      }
-      return conversationData;
+      return queryData(parsedData);
     } else {
-      return "Sorry, data could not be retrieved";
+      return "Sorry, conversation data could not be retrieved.";
     }
   });
 }
 
-xboxApi.getMostRecentActivity = function(userID) {
-  var url = "https://xboxapi.com/v2/" + userID + "/activity"
+xboxApi.getMessages = function(queryData) {
+  var url = "https://xboxapi.com/v2/messages";
+  request({
+    url: url,
+    headers: {
+      "X-AUTH": auth
+    }
+  },
+  function(error, response, body) {
+    var parsedData = JSON.parse(body);
+
+    if (!error) {
+      return queryData(parsedData);
+    } else {
+      return "Sorry, messages could not be retrieved.";
+    }
+  });
+}
+
+xboxApi.getMostRecentActivity = function(userID, queryData) {
+  var url = "https://xboxapi.com/v2/" + userID + "/activity";
+  var activityInformation = {};
   request({
     url: url,
     headers: {
@@ -48,7 +54,7 @@ xboxApi.getMostRecentActivity = function(userID) {
     var increment = 0;
     var message = "Jarvis: ";
 
-    try {
+    if (!error) {
       var userID = parsedData["activityItems"][increment]["userXuid"];
       var recentActivityName = parsedData["activityItems"][increment]["contentTitle"];
       var recentActivityDescription = parsedData["activityItems"][increment]["description"];
@@ -56,20 +62,19 @@ xboxApi.getMostRecentActivity = function(userID) {
       var endTime = parsedData["activityItems"][increment]["endTime"];
       var sessionTime = parsedData["activityItems"][increment]["sessionDurationInMinutes"];
       var gamerTag = parsedData["activityItems"][increment]["gamertag"];
-    } catch(err) {
-      console.log(err);
-    }
 
-    // This check is done to skip over activities without a start time and end time, example: achievements.
-    while (startTime === undefined) {
-      userID = parsedData["activityItems"][increment]["userXuid"];
-      gamerTag = parsedData["activityItems"][increment]["gamertag"];
-      recentActivityName = parsedData["activityItems"][increment]["contentTitle"];
-      recentActivityDescription = parsedData["activityItems"][increment]["description"];
-      startTime = parsedData["activityItems"][increment]["startTime"];
-      endTime = parsedData["activityItems"][increment]["endTime"];
-      sessionTime = parsedData["activityItems"][increment]["sessionDurationInMinutes"];
-      increment++;
+
+      // This check is done to skip over activities without a start time and end time, example: achievements.
+      while (startTime === undefined) {
+        userID = parsedData["activityItems"][increment]["userXuid"];
+        gamerTag = parsedData["activityItems"][increment]["gamertag"];
+        recentActivityName = parsedData["activityItems"][increment]["contentTitle"];
+        recentActivityDescription = parsedData["activityItems"][increment]["description"];
+        startTime = parsedData["activityItems"][increment]["startTime"];
+        endTime = parsedData["activityItems"][increment]["endTime"];
+        sessionTime = parsedData["activityItems"][increment]["sessionDurationInMinutes"];
+        increment++;
+      }
     }
 
     // An endtime isn't set until the user closes the application they're using.
@@ -80,7 +85,7 @@ xboxApi.getMostRecentActivity = function(userID) {
       message += "You used " + recentActivityName + " for " + sessionTime + " minutes.";
     }
 
-    var activityInformation = {
+    activityInformation = {
       "id": userID,
       "gamerTag": gamerTag,
       "activityName": recentActivityName,
@@ -91,10 +96,8 @@ xboxApi.getMostRecentActivity = function(userID) {
       "message": message
     };
 
-    console.log(activityInformation);
-
     increment = 0;
-    return activityInformation;
+    return queryData(activityInformation);
   });
 }
 
@@ -158,7 +161,36 @@ xboxApi.sendMessage = function(message, userID) {
 }
 
 xboxApi.monitorAwayStatus = function(userID) {
-  xboxApi.getMostRecentActivity(userID);
+  xboxApi.getMostRecentActivity(userID, function(activityInformation) {
+    var activityName = activityInformation["activityName"];
+    var appUserGamerTag = activityInformation["gamerTag"];
+    var appStartTime = new Date(activityInformation["startTime"]);
+    var appEndTime = new Date(activityInformation["endTime"]);
+
+    if (activityName == "Hulu" || activityName == "Netflix") {
+      xboxApi.getConversations(function(conversationData) {
+        // TODO change to fit all new messages, will be the first conversation you've had.
+        var testConversation = conversationData[0];
+
+        var msgSenderGamerTag = testConversation["senderGamerTag"];
+        var msgSenderID = testConversation["senderXuid"];
+
+        var recentConversationTime = new Date(testConversation["lastUpdated"]);
+
+        // TODO add appEndTime === undefined. Not currently added for testing purposes.
+        if (recentConversationTime >= appStartTime) {
+          xboxApi.sendMessage(
+          "Jarvis: Hello " + msgSenderGamerTag + ". " +
+          appUserGamerTag + " is currently watching " +
+          activityName + " and is unable to respond. " +
+          appUserGamerTag + " will be back to you at their earliest convenience.", myID);
+        }
+        // End testing
+      });
+    } else {
+      console.log("Signed offline or available for messaging.");
+    }
+  });
 }
 
 module.exports = xboxApi;
