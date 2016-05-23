@@ -1,6 +1,7 @@
 var request = require("request"), auth = process.env.XBOX_API_AUTH_KEY;
 var Message = require("../../models/message");
-var myID = process.env.MY_XBOX_ID;
+var PERSONAL_XBOX_ID = process.env.MY_XBOX_ID;
+var PERSONAL_USER_ID = process.env.USER_ID;
 var xboxApi = {};
 
 xboxApi.getConversations = function(queryData) {
@@ -35,51 +36,12 @@ xboxApi.getMessages = function(queryData) {
 
   function(error, response, body) {
     var parsedData = JSON.parse(body);
-
-      // Checks if the XboxAPI returned data
-      if (parsedData !== undefined) {
-
-        // Loop through all returned messages
-        while (parsedData[increment] !== undefined) {
-          // Check if the a message already exists
-          Message.find({messageId: parsedData[increment]["header"]["id"]}, function(err, foundMessage) {
-            //if (foundMessage === undefined) {
-
-            console.log(parsedData[increment]["header"]["id"]);
-            
-              var newMessage = new Message({
-                messageId: parsedData[increment]["header"]["id"],
-                senderXuid: parsedData[increment]["header"]["senderXuid"],
-                sender: parsedData[increment]["header"]["sender"],
-                sent: parsedData[increment]["header"]["sent"],
-                expiration: parsedData[increment]["header"]["expiration"],
-                hasText: parsedData[increment]["header"]["hasText"],
-                hasPhoto: BooleparsedData[increment]["header"]["hasPhoto"],
-                hasAudio: parsedData[increment]["header"]["hasAudio"],
-                messageFolderType: parsedData[increment]["header"]["Inbox"],
-                messageSummary: parsedData[increment]["messageSummary"]
-              });
-
-              // Create the new message
-              Message.save(newMessage, function(err, newlyCreated) {
-                if (err) {
-                  console.log(err);
-                } else {
-                  console.log("Message successfully saved");
-                }
-              });
-            //}
-          });
-          increment++;
+        if (!error) {
+          return queryData(parsedData);
+        } else {
+          return undefined;
         }
-      }
-      if (!error) {
-        return queryData(parsedData);
-      } else {
-        return "Sorry, conversation data could not be retrieved.";
-      }
   });
-  increment = 0;
 }
 
 xboxApi.getMostRecentActivity = function(userID, queryData) {
@@ -200,6 +162,7 @@ xboxApi.sendMessage = function(message, userID) {
 }
 
 xboxApi.monitorAwayStatus = function(userID) {
+  var FIRST = 0;
   xboxApi.getMostRecentActivity(userID, function(activityInformation) {
     var activityName = activityInformation["activityName"];
     var appUserGamerTag = activityInformation["gamerTag"];
@@ -209,28 +172,70 @@ xboxApi.monitorAwayStatus = function(userID) {
 
     if (activityName == "Hulu" || activityName == "Netflix") {
       xboxApi.getMessages(function(messageData) {
-        // TODO change to fit all new messages, will be the first conversation you've had.
-        var testConversation = messageData[0];
+        var newMessage = new Message({});
+        var NEWEST = 0;
+          // Checks if the XboxAPI returned data
+          if (messageData !== undefined) {
+            // Loop through all returned messages
+              newMessage = new Message({
+                messageId: messageData[NEWEST]["header"]["id"],
+                senderXuid: messageData[NEWEST]["header"]["senderXuid"],
+                sender: messageData[NEWEST]["header"]["sender"],
+                sent: messageData[NEWEST]["header"]["sent"],
+                expiration: messageData[NEWEST]["header"]["expiration"],
+                hasText: messageData[NEWEST]["header"]["hasText"],
+                hasPhoto: messageData[NEWEST]["header"]["hasPhoto"],
+                hasAudio: messageData[NEWEST]["header"]["hasAudio"],
+                messageFolderType: messageData[NEWEST]["header"]["Inbox"],
+                messageSummary: messageData[NEWEST]["messageSummary"]
+              });
 
-        var msgSenderGamerTag = testConversation["senderGamerTag"];
-        var msgSenderID = testConversation["senderXuid"];
-
-        var recentConversationTime = new Date(testConversation["lastUpdated"]);
-
-        // TODO add appEndTime === undefined. Not currently added for testing purposes.
-        if (recentConversationTime >= appStartTime) {
-          xboxApi.sendMessage(
-          "Jarvis: Hello " + msgSenderGamerTag + ". " +
-          appUserGamerTag + " is currently watching " +
-          activityName + " and is unable to respond. " +
-          appUserGamerTag + " will be back to you at their earliest convenience.", myID);
-        }
-        // End testing
+              // Check is the user is attempting to send a message to themselves.
+              if (newMessage["sender"] != PERSONAL_USER_ID) {
+                // Check if the a message already exists
+                  xboxApi.storeNewMessage(newMessage, function(response) {
+                    if (response === false) {
+                      console.log("I've already sent a message to this user.");
+                    } else {
+                      xboxApi.sendMessage(
+                      "Jarvis: Hello " + newMessage["sender"] + ". " +
+                      appUserGamerTag + " is currently watching " +
+                      activityName + " and is unable to respond. " +
+                      appUserGamerTag + " will be get to you at their earliest convenience.", newMessage["senderXuid"]);
+                    }
+                  });
+                } else {
+                  console.log("I won't store messages you've sent to yourself.");
+                }
+              }
       });
     } else {
       console.log("Signed offline or available for messaging.");
     }
   });
 }
+
+xboxApi.storeNewMessage = function(newMessage, result) {
+  Message.find({messageId: newMessage["messageId"]}, function(error, foundMessage) {
+      // If no message is found, create a message
+      if (foundMessage.length == 0) {
+        //Create a new message
+        Message.create(newMessage, function(err, newlyCreated) {
+          if (err) {
+            console.log("There was an error. I'm unable to add the message");
+            return result(false);
+          } else {
+            console.log("I've stored a new message.");
+            return result(true);
+          }
+        });
+      } else {
+        console.log("I've already created this in the database.");
+        return result(false);
+      }
+  });
+}
+
+
 
 module.exports = xboxApi;

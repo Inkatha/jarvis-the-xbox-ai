@@ -14,12 +14,13 @@ mongoose.connect("mongodb://localhost/xbox_app", function(err, db) {
 app.set("view engine", "ejs");
 
 //Run the Monitor function every 60 seconds.
-// setInterval(function() {
-//   xboxApi.monitorAwayStatus(myID);
-// }, 60000);
+setInterval(function() {
+  xboxApi.monitorAwayStatus(myID);
+}, 60000);
 
-xboxApi.getMessages(function(response) {
-});
+// xboxApi.getMessages(function(response) {
+//   console.log(response);
+// });
 
 app.get("/", function(req, res) {
 
