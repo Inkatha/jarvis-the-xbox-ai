@@ -1,8 +1,12 @@
 var myID = process.env.MY_XBOX_ID;
+
 var express = require("express");
 var schedule = require("node-schedule");
-var mongoose = require("mongoose")
-var xboxApi = require("./middleware/xboxapi");
+var mongoose = require("mongoose");
+
+var xboxApi = require("./middleware/xbox-api");
+var monitor = require("./middleware/monitor");
+
 var app = express();
 
 mongoose.connect("mongodb://localhost/xbox_app", function(err, db) {
@@ -15,12 +19,12 @@ app.set("view engine", "ejs");
 
 //Run the Monitor function every 60 seconds.
 setInterval(function() {
-  xboxApi.monitorAwayStatus(myID);
-}, 15000);
+  monitor.awayStatus(myID);
+}, 60000);
 
-// xboxApi.getMessages(function(response) {
-//   console.log(response);
-// });
+// setInterval(function() {
+  monitor.messWithAFriend("2533274862374130");
+}, 15000);
 
 app.get("/", function(req, res) {
 
