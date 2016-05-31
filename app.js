@@ -1,4 +1,6 @@
 var myID = process.env.MY_XBOX_ID;
+var LOCAL_DATABASE_CONNECTION = "mongodb://localhost/xbox_app";
+var PRODUCTION_DATABASE_CONNECTION = "mongodb://mink:255149@ds021691.mlab.com:21691/jarvis-the-ai";
 
 var express = require("express");
 var schedule = require("node-schedule");
@@ -9,7 +11,9 @@ var monitor = require("./middleware/monitor");
 
 var app = express();
 
-mongoose.connect("mongodb://localhost/xbox_app", function(err, db) {
+
+
+mongoose.connect(PRODUCTION_DATABASE_CONNECTION, function(err, db) {
   if (!err) {
     console.log("We are connected!");
   }
@@ -23,7 +27,7 @@ setInterval(function() {
 }, 60000);
 
 // setInterval(function() {
-//monitor.messWithAFriend("2533274850459263");
+// monitor.messWithAFriend("2533274850459263");
 // }, 15000);
 
 app.get("/", function(req, res) {
