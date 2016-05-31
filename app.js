@@ -3,7 +3,6 @@ var LOCAL_DATABASE_CONNECTION = "mongodb://localhost/xbox_app";
 var PRODUCTION_DATABASE_CONNECTION = process.env.PRODUCTION_DATABASE_CONNECTION;
 
 var express = require("express");
-var schedule = require("node-schedule");
 var mongoose = require("mongoose");
 
 var xboxApi = require("./middleware/xbox-api");
