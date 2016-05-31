@@ -4,7 +4,8 @@
   "description": "Jarvis is a personal assistant for all of your xbox one needs!",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
   },
   "author": "Malik Inkatha",
   "license": "ISC",
