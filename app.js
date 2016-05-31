@@ -23,14 +23,10 @@ setInterval(function() {
   monitor.awayStatus(myID);
 }, 60000);
 
-// setInterval(function() {
-// monitor.messWithAFriend("2533274850459263");
-// }, 15000);
-
 app.get("/", function(req, res) {
-
+  res.render("index");
 });
 
-app.listen(8000, process.env.IP, function() {
-  console.log("Server is listening on port: 8000");
+app.listen(process.env.PORT, process.env.IP, function() {
+  console.log("Server is listening on port:", process.env.PORT);
 });
