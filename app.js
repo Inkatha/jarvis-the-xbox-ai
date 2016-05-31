@@ -23,8 +23,8 @@ setInterval(function() {
 }, 60000);
 
 // setInterval(function() {
-  monitor.messWithAFriend("2533274862374130");
-}, 15000);
+//monitor.messWithAFriend("2533274850459263");
+// }, 15000);
 
 app.get("/", function(req, res) {
 
