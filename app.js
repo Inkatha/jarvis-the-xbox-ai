@@ -1,6 +1,6 @@
 var myID = process.env.MY_XBOX_ID;
 var LOCAL_DATABASE_CONNECTION = "mongodb://localhost/xbox_app";
-var PRODUCTION_DATABASE_CONNECTION = "mongodb://mink:255149@ds021691.mlab.com:21691/jarvis-the-ai";
+var PRODUCTION_DATABASE_CONNECTION = process.env.PRODUCTION_DATABASE_CONNECTION;
 
 var express = require("express");
 var schedule = require("node-schedule");
@@ -10,8 +10,6 @@ var xboxApi = require("./middleware/xbox-api");
 var monitor = require("./middleware/monitor");
 
 var app = express();
-
-
 
 mongoose.connect(PRODUCTION_DATABASE_CONNECTION, function(err, db) {
   if (!err) {
