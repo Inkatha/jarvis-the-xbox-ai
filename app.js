@@ -1,5 +1,5 @@
 var myID = process.env.MY_XBOX_ID;
-var LOCAL_DATABASE_CONNECTION = "mongodb://localhost/xbox_app";
+var TEST_DATABASE_CONNECTION = process.env.TEST_DATABASE_CONNECTION;
 var PRODUCTION_DATABASE_CONNECTION = process.env.PRODUCTION_DATABASE_CONNECTION;
 
 var express = require("express");
@@ -10,7 +10,7 @@ var monitor = require("./middleware/monitor");
 
 var app = express();
 
-mongoose.connect(PRODUCTION_DATABASE_CONNECTION, function(err, db) {
+mongoose.connect(TEST_DATABASE_CONNECTION, function(err, db) {
   if (!err) {
     console.log("We are connected!");
   }
