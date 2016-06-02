@@ -4,19 +4,25 @@ var PRODUCTION_DATABASE_CONNECTION = process.env.PRODUCTION_DATABASE_CONNECTION;
 
 var express = require("express");
 var mongoose = require("mongoose");
-
+var http = require("http");
 var xboxApi = require("./middleware/xbox-api");
 var monitor = require("./middleware/monitor");
 
 var app = express();
 
-mongoose.connect(TEST_DATABASE_CONNECTION, function(err, db) {
+mongoose.connect(PRODUCTION_DATABASE_CONNECTION, function(err, db) {
   if (!err) {
     console.log("We are connected!");
   }
 });
 
 app.set("view engine", "ejs");
+
+var minutes = 15;
+var interval = minutes * 60 * 1000;
+setInterval(function() {
+  http.get("https://jarvis-the-xbox-ai.herokuapp.com/");
+}, interval);
 
 //Run the Monitor function every 60 seconds.
 setInterval(function() {
