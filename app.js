@@ -21,7 +21,7 @@ app.set("view engine", "ejs");
 var minutes = 15;
 var interval = minutes * 60 * 1000;
 setInterval(function() {
-  http.get("https://jarvis-the-xbox-ai.herokuapp.com/");
+  http.get("http://jarvis-the-xbox-ai.herokuapp.com/");
 }, interval);
 
 //Run the Monitor function every 60 seconds.
