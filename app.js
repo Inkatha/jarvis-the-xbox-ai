@@ -20,6 +20,8 @@ app.set("view engine", "ejs");
 
 var minutes = 15;
 var interval = minutes * 60 * 1000;
+
+// go to the heroku app every 15 minutes to prevent the Heroku Dyno from sleeping
 setInterval(function() {
   http.get("http://jarvis-the-xbox-ai.herokuapp.com/");
 }, interval);
